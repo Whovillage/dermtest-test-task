@@ -24,11 +24,15 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.validation.FieldError;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @CrossOrigin(origins = "http://localhost:8081")
 @RequestMapping("/api")
 @RestController
 public class DoctorController {
+
+    private static final Logger logger = LogManager.getLogger(DoctorController.class);
 
     @Autowired
     DoctorRepository doctorRepository;
@@ -46,6 +50,7 @@ public class DoctorController {
 
           return new ResponseEntity<>(doctors, HttpStatus.OK);
         } catch (Exception e) {
+          logger.error(String.format("error while fetching doctors: %s", e));
           return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -61,6 +66,7 @@ public class DoctorController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
           }
         } catch (Exception e) {
+          logger.error(String.format("error while fetching doctor %s: %s", id, e));
           return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }  
     }
@@ -70,8 +76,31 @@ public class DoctorController {
       try {
         Doctor savedDoctor = doctorRepository
             .save(new Doctor(doctor.getName(), doctor.getSurname(),doctor.getEmployer(),doctor.getSpeciality()));
+        logger.info(String.format("registered a new doctor: %s", savedDoctor));
         return new ResponseEntity<>(savedDoctor, HttpStatus.CREATED);
       } catch (Exception e) {
+        logger.error(String.format("error while creating a new doctor: %s", e));
+        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+
+    @PutMapping("/doctors/{id}")
+    public ResponseEntity<Doctor> updateTutorial(@PathVariable("id") long id, @Valid @RequestBody Doctor doctor) {
+      try {
+        Optional<Doctor> doctorData = doctorRepository.findById(id);
+  
+        if (doctorData.isPresent()) {
+          Doctor updatedDoctor = doctorData.get();
+          updatedDoctor.setName(doctor.getName());
+          updatedDoctor.setSurname(doctor.getSurname());
+          updatedDoctor.setEmployer(doctor.getEmployer());
+          updatedDoctor.setSpeciality(doctor.getSpeciality());
+          return new ResponseEntity<>(doctorRepository.save(updatedDoctor), HttpStatus.OK);
+        } else {
+          return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+      } catch (Exception e) {
+        logger.error(String.format("server error while updating a doctor: %s", e));
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
@@ -87,6 +116,22 @@ public class DoctorController {
             errors.put(fieldName, errorMessage);
         });
         return errors;
+    }
+
+    @DeleteMapping("/doctors/{id}")
+    public ResponseEntity<String> deleteTutorial(@PathVariable("id") long id) {
+      try {
+        Optional<Doctor> doctorData = doctorRepository.findById(id);
+        if (doctorData.isPresent()) {
+          doctorRepository.deleteById(id);
+          return ResponseEntity.ok(String.format("User %s deleted successfully", id));
+        } else {
+          return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+      } catch (Exception e) {
+        logger.error(String.format("server error while deleting a doctor: %s", e));
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
     
 }
