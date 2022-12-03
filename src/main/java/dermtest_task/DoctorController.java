@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -32,106 +31,106 @@ import org.apache.logging.log4j.Logger;
 @RestController
 public class DoctorController {
 
-    private static final Logger logger = LogManager.getLogger(DoctorController.class);
+  private static final Logger logger = LogManager.getLogger(DoctorController.class);
 
-    @Autowired
-    DoctorRepository doctorRepository;
+  @Autowired
+  DoctorRepository doctorRepository;
 
-    @GetMapping("/doctors")
-    public ResponseEntity<List<Doctor>> getAllDoctors() {
-        try {
-          List<Doctor> doctors = new ArrayList<Doctor>();
-    
-          doctorRepository.findAll().forEach(doctors::add);
-          
-          if (doctors.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-          }
+  @GetMapping("/doctors")
+  public ResponseEntity<List<Doctor>> getAllDoctors() {
+    try {
+      List<Doctor> doctors = new ArrayList<Doctor>();
 
-          return new ResponseEntity<>(doctors, HttpStatus.OK);
-        } catch (Exception e) {
-          logger.error(String.format("error while fetching doctors: %s", e));
-          return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+      doctorRepository.findAll().forEach(doctors::add);
 
-    @GetMapping("/doctors/{id}")
-    public ResponseEntity<Doctor> getDoctorById(@PathVariable("id") Long id) {
-        try {
-          Optional<Doctor> doctorData = doctorRepository.findById(id);
-  
-          if (doctorData.isPresent()) {
-            return new ResponseEntity<>(doctorData.get(), HttpStatus.OK);
-          } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-          }
-        } catch (Exception e) {
-          logger.error(String.format("error while fetching doctor %s: %s", id, e));
-          return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }  
-    }
-
-    @PostMapping("/doctors")
-    public ResponseEntity<Doctor> addDoctor(@Valid @RequestBody Doctor doctor) {
-      try {
-        Doctor savedDoctor = doctorRepository
-            .save(new Doctor(doctor.getName(), doctor.getSurname(),doctor.getEmployer(),doctor.getSpeciality()));
-        logger.info(String.format("registered a new doctor: %s", savedDoctor));
-        return new ResponseEntity<>(savedDoctor, HttpStatus.CREATED);
-      } catch (Exception e) {
-        logger.error(String.format("error while creating a new doctor: %s", e));
-        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+      if (doctors.isEmpty()) {
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
       }
-    }
 
-    @PutMapping("/doctors/{id}")
-    public ResponseEntity<Doctor> updateTutorial(@PathVariable("id") long id, @Valid @RequestBody Doctor doctor) {
-      try {
-        Optional<Doctor> doctorData = doctorRepository.findById(id);
-  
-        if (doctorData.isPresent()) {
-          Doctor updatedDoctor = doctorData.get();
-          updatedDoctor.setName(doctor.getName());
-          updatedDoctor.setSurname(doctor.getSurname());
-          updatedDoctor.setEmployer(doctor.getEmployer());
-          updatedDoctor.setSpeciality(doctor.getSpeciality());
-          return new ResponseEntity<>(doctorRepository.save(updatedDoctor), HttpStatus.OK);
-        } else {
-          return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-      } catch (Exception e) {
-        logger.error(String.format("server error while updating a doctor: %s", e));
-        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+      return new ResponseEntity<>(doctors, HttpStatus.OK);
+    } catch (Exception e) {
+      logger.error(String.format("error while fetching doctors: %s", e));
+      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @GetMapping("/doctors/{id}")
+  public ResponseEntity<Doctor> getDoctorById(@PathVariable("id") Long id) {
+    try {
+      Optional<Doctor> doctorData = doctorRepository.findById(id);
+
+      if (doctorData.isPresent()) {
+        return new ResponseEntity<>(doctorData.get(), HttpStatus.OK);
+      } else {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
       }
+    } catch (Exception e) {
+      logger.error(String.format("error while fetching doctor %s: %s", id, e));
+      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleValidationExceptions(
-        MethodArgumentNotValidException ex) {
-            Map<String, String> errors = new HashMap<>();
-            ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return errors;
+  @PostMapping("/doctors")
+  public ResponseEntity<Doctor> addDoctor(@Valid @RequestBody Doctor doctor) {
+    try {
+      Doctor savedDoctor = doctorRepository
+          .save(new Doctor(doctor.getName(), doctor.getSurname(), doctor.getEmployer(), doctor.getSpeciality()));
+      logger.info(String.format("registered a new doctor: %s", savedDoctor));
+      return new ResponseEntity<>(savedDoctor, HttpStatus.CREATED);
+    } catch (Exception e) {
+      logger.error(String.format("error while creating a new doctor: %s", e));
+      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
 
-    @DeleteMapping("/doctors/{id}")
-    public ResponseEntity<String> deleteTutorial(@PathVariable("id") long id) {
-      try {
-        Optional<Doctor> doctorData = doctorRepository.findById(id);
-        if (doctorData.isPresent()) {
-          doctorRepository.deleteById(id);
-          return ResponseEntity.ok(String.format("User %s deleted successfully", id));
-        } else {
-          return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-      } catch (Exception e) {
-        logger.error(String.format("server error while deleting a doctor: %s", e));
-        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+  @PutMapping("/doctors/{id}")
+  public ResponseEntity<Doctor> updateTutorial(@PathVariable("id") long id, @Valid @RequestBody Doctor doctor) {
+    try {
+      Optional<Doctor> doctorData = doctorRepository.findById(id);
+
+      if (doctorData.isPresent()) {
+        Doctor updatedDoctor = doctorData.get();
+        updatedDoctor.setName(doctor.getName());
+        updatedDoctor.setSurname(doctor.getSurname());
+        updatedDoctor.setEmployer(doctor.getEmployer());
+        updatedDoctor.setSpeciality(doctor.getSpeciality());
+        return new ResponseEntity<>(doctorRepository.save(updatedDoctor), HttpStatus.OK);
+      } else {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
       }
+    } catch (Exception e) {
+      logger.error(String.format("server error while updating a doctor: %s", e));
+      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    
+  }
+
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public Map<String, String> handleValidationExceptions(
+      MethodArgumentNotValidException ex) {
+    Map<String, String> errors = new HashMap<>();
+    ex.getBindingResult().getAllErrors().forEach((error) -> {
+      String fieldName = ((FieldError) error).getField();
+      String errorMessage = error.getDefaultMessage();
+      errors.put(fieldName, errorMessage);
+    });
+    return errors;
+  }
+
+  @DeleteMapping("/doctors/{id}")
+  public ResponseEntity<String> deleteTutorial(@PathVariable("id") long id) {
+    try {
+      Optional<Doctor> doctorData = doctorRepository.findById(id);
+      if (doctorData.isPresent()) {
+        doctorRepository.deleteById(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+      } else {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      }
+    } catch (Exception e) {
+      logger.error(String.format("server error while deleting a doctor: %s", e));
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
 }
