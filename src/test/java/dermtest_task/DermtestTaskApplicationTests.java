@@ -18,9 +18,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(DoctorController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class TestDoctorController {
 
 	@MockBean
