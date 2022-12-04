@@ -25,6 +25,14 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.validation.FieldError;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @RequestMapping("/api")
 @RestController
@@ -35,6 +43,11 @@ public class DoctorController {
   @Autowired
   DoctorRepository doctorRepository;
 
+  @Operation(summary = "Get all doctors")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Found doctors", content = {
+          @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Doctor.class))) }),
+      @ApiResponse(responseCode = "204", description = "No doctors in the database", content = @Content) })
   @GetMapping("/doctors")
   public ResponseEntity<List<Doctor>> getAllDoctors() {
     try {
@@ -53,6 +66,11 @@ public class DoctorController {
     }
   }
 
+  @Operation(summary = "Get single doctor")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Found doctor", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = Doctor.class)) }),
+      @ApiResponse(responseCode = "404", description = "Doctor with given id does not exist", content = @Content) })
   @GetMapping("/doctors/{id}")
   public ResponseEntity<Doctor> getDoctorById(@PathVariable("id") Long id) {
     try {
@@ -69,8 +87,12 @@ public class DoctorController {
     }
   }
 
+  @Operation(summary = "Create a new doctor")
+  @ApiResponse(responseCode = "201", description = "Added doctor", content = {
+      @Content(mediaType = "application/json", schema = @Schema(implementation = Doctor.class)) })
   @PostMapping("/doctors")
-  public ResponseEntity<Doctor> addDoctor(@Valid @RequestBody Doctor doctor) {
+  public ResponseEntity<Doctor> addDoctor(
+      @Parameter(description = "id field can be omitted from request body") @Valid @RequestBody Doctor doctor) {
     try {
       Doctor savedDoctor = doctorRepository
           .save(new Doctor(doctor.getName(), doctor.getSurname(), doctor.getEmployer(), doctor.getSpeciality()));
@@ -82,6 +104,12 @@ public class DoctorController {
     }
   }
 
+  @Operation(summary = "Update a doctor")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Updated a doctor", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = Doctor.class)) }),
+      @ApiResponse(responseCode = "404", description = "Doctor with provided id not found", content = @Content),
+  })
   @PutMapping("/doctors/{id}")
   public ResponseEntity<Doctor> updateTutorial(@PathVariable("id") long id, @Valid @RequestBody Doctor doctor) {
     try {
@@ -105,6 +133,7 @@ public class DoctorController {
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(MethodArgumentNotValidException.class)
+  @ApiResponse(responseCode = "400", description = "Invalid fields in request", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"name\": \"name is mandatory\",\"employer\": \"employer is mandatory\"}")))
   public Map<String, String> handleValidationExceptions(
       MethodArgumentNotValidException ex) {
     Map<String, String> errors = new HashMap<>();
@@ -116,6 +145,11 @@ public class DoctorController {
     return errors;
   }
 
+  @Operation(summary = "Delete a doctor")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Deleted a doctor"),
+      @ApiResponse(responseCode = "404", description = "Doctor with provided id not found", content = @Content),
+  })
   @DeleteMapping("/doctors/{id}")
   public ResponseEntity<String> deleteTutorial(@PathVariable("id") long id) {
     try {
