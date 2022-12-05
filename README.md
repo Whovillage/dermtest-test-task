@@ -49,7 +49,7 @@ To create a JPA repository I added `spring-boot-starter-data-JPA` as a dependenc
 
 ## Add Oauth2
 
-I added log-in with Github using Oauth2. For this I added `spring-boot-starter-oauth2-client` as a dependency. Then I registered a new oauth app in Github and added the clientID and client secret to project configuration. This automatically added Github auth to the project. I hid the client secret in the `.env` file, but decided to push the `.env` file to remote so that the evaluator would also have the secret when testing the app.
+I added log-in with Github using Oauth2. For this I added `spring-boot-starter-oauth2-client` as a dependency. Then I registered a new oauth app in Github and added the clientID and client secret to project configuration. This automatically added Github auth to the project. In real environnment the secret should never be visible in the remote repo, but with this test task I decided to push the secret to remote so that the evaluator would also have easy access when testing the app.
 
 Adding security to the app, however, introduced a complication - namely CSRF protection got enabled in addition to auth. This caused all POST requests to give a 403 response. Debugging and solving this problem took me down a rabbithole for a couple of hours. I was finally able to find a way to disable CSRF by changing the WebSecurity configuration of the application. The solution uses a deprecated `WebSecurityConfigurerAdapter` to achieve it, but as this was not in the actual scope of this task I left it as is. In production environments where users are able to produce input through the browser and sensitive information is at play, CSRF should definitely stay enabled.
 
